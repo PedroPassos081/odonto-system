@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Sistema Drª Susana Lourenço",
   description: "Sistema interno para clínica dentária",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
