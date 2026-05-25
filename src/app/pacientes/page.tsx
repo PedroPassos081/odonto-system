@@ -6,6 +6,7 @@ import {
   Plus,
   Search,
 } from "lucide-react";
+import Link from "next/link";
 
 const patients = [
   {
@@ -60,10 +61,13 @@ export default function PatientsPage() {
           </h1>
         </div>
 
-        <button className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#399DCA] px-7 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2E91BD]">
-          <Plus size={18} />
-          Novo paciente
-        </button>
+        <Link
+            href="/pacientes/novo"
+            className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#399DCA] px-7 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2E91BD]"
+            >
+            <Plus size={18} />
+            Novo paciente
+        </Link>
       </div>
 
       <section className="mt-9 overflow-hidden rounded-3xl border border-[#D8EDF8] bg-white shadow-sm">
