@@ -5,6 +5,7 @@ import {
   CalendarClock,
   ChevronDown,
   CreditCard,
+  Download,
   Eye,
   MoreHorizontal,
   Plus,
@@ -126,11 +127,28 @@ function getStatusStyle(status: string) {
 }
 
 export default function FinancePage() {
-  const [activeTab, setActiveTab] = useState<"recebimentos" | "contas">(
-    "recebimentos"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "recebimentos" | "contas" | "relatorios"
+  >("recebimentos");
+
   const [isNewPaymentModalOpen, setIsNewPaymentModalOpen] = useState(false);
   const [isNewExpenseModalOpen, setIsNewExpenseModalOpen] = useState(false);
+
+  function handleMainAction() {
+    if (activeTab === "recebimentos") {
+      setIsNewPaymentModalOpen(true);
+      return;
+    }
+
+    if (activeTab === "contas") {
+      setIsNewExpenseModalOpen(true);
+      return;
+    }
+
+    alert(
+      "A exportação em Excel será implementada quando conectarmos o banco de dados."
+    );
+  }
 
   return (
     <AppShell>
@@ -152,43 +170,45 @@ export default function FinancePage() {
 
         <button
           type="button"
-          onClick={() =>
-            activeTab === "recebimentos"
-              ? setIsNewPaymentModalOpen(true)
-              : setIsNewExpenseModalOpen(true)
-          }
+          onClick={handleMainAction}
           className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[#399DCA] px-7 py-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2E91BD]"
         >
-          <Plus size={18} />
-          {activeTab === "recebimentos" ? "Novo pagamento" : "Nova conta"}
+          {activeTab === "relatorios" ? (
+            <Download size={18} />
+          ) : (
+            <Plus size={18} />
+          )}
+
+          {activeTab === "recebimentos"
+            ? "Novo pagamento"
+            : activeTab === "contas"
+            ? "Nova conta"
+            : "Exportar Excel"}
         </button>
       </div>
 
       <div className="mt-9 rounded-3xl border border-[#D8EDF8] bg-white p-3 shadow-sm">
         <div className="flex w-fit gap-2">
-          <button
-            type="button"
+          <TabButton
+            active={activeTab === "recebimentos"}
             onClick={() => setActiveTab("recebimentos")}
-            className={`rounded-2xl px-5 py-3 text-sm font-medium transition ${
-              activeTab === "recebimentos"
-                ? "bg-[#D7F5FC] text-[#12384D]"
-                : "text-[#60758A] hover:bg-[#F0FAFE] hover:text-[#12384D]"
-            }`}
           >
             Recebimentos
-          </button>
+          </TabButton>
 
-          <button
-            type="button"
+          <TabButton
+            active={activeTab === "contas"}
             onClick={() => setActiveTab("contas")}
-            className={`rounded-2xl px-5 py-3 text-sm font-medium transition ${
-              activeTab === "contas"
-                ? "bg-[#D7F5FC] text-[#12384D]"
-                : "text-[#60758A] hover:bg-[#F0FAFE] hover:text-[#12384D]"
-            }`}
           >
             Contas a pagar
-          </button>
+          </TabButton>
+
+          <TabButton
+            active={activeTab === "relatorios"}
+            onClick={() => setActiveTab("relatorios")}
+          >
+            Relatórios
+          </TabButton>
         </div>
       </div>
 
@@ -232,7 +252,7 @@ export default function FinancePage() {
             <FinanceFilters placeholder="Procurar por paciente ou tratamento..." />
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1000px] border-collapse">
+              <table className="w-full min-w-250 border-collapse">
                 <thead>
                   <tr className="border-b border-[#D8EDF8] bg-white">
                     <TableHead>Paciente</TableHead>
@@ -335,7 +355,7 @@ export default function FinancePage() {
             <FinanceFilters placeholder="Procurar por descrição, fornecedor ou categoria..." />
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1050px] border-collapse">
+              <table className="w-full min-w-262.5 border-collapse">
                 <thead>
                   <tr className="border-b border-[#D8EDF8] bg-white">
                     <TableHead>Descrição</TableHead>
@@ -400,6 +420,116 @@ export default function FinancePage() {
         </>
       )}
 
+      {activeTab === "relatorios" && (
+        <>
+          <section className="mt-9 rounded-3xl border border-[#D8EDF8] bg-white p-7 shadow-sm">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-[#12384D]">
+                  Relatório financeiro
+                </h2>
+
+                <p className="mt-1 text-sm text-[#60758A]">
+                  Filtre por período para analisar entradas, saídas e saldo
+                  estimado.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  alert(
+                    "A exportação em Excel será implementada quando conectarmos o banco de dados."
+                  )
+                }
+                className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#B5E0FB] bg-[#E8F5FB] px-6 py-3.5 text-sm font-semibold text-[#2E91BD] transition hover:bg-[#D7F5FC]"
+              >
+                <Download size={18} />
+                Exportar Excel
+              </button>
+            </div>
+
+            <div className="mt-7 grid grid-cols-1 gap-5 md:grid-cols-3">
+              <FormInput label="Data inicial" type="date" />
+              <FormInput label="Data final" type="date" />
+
+              <FormSelect label="Tipo de relatório">
+                <option>Geral</option>
+                <option>Apenas recebimentos</option>
+                <option>Apenas contas a pagar</option>
+                <option>Pendências</option>
+              </FormSelect>
+            </div>
+          </section>
+
+          <div className="mt-9 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <SummaryCard
+              title="Entradas"
+              value="€580"
+              description="Recebido no período"
+              icon={<TrendingUp size={22} />}
+              iconClassName="bg-[#E6F7EF] text-[#2F855A]"
+            />
+
+            <SummaryCard
+              title="Saídas"
+              value="€89"
+              description="Despesas pagas"
+              icon={<TrendingDown size={22} />}
+              iconClassName="bg-[#FFF7E6] text-[#B7791F]"
+            />
+
+            <SummaryCard
+              title="Saldo estimado"
+              value="€491"
+              description="Entradas menos saídas"
+              icon={<Wallet size={22} />}
+              iconClassName="bg-[#E8F5FB] text-[#2E91BD]"
+            />
+
+            <SummaryCard
+              title="Pendências"
+              value="€1.860"
+              description="A receber + a pagar"
+              icon={<CreditCard size={22} />}
+              iconClassName="bg-[#F8FBFD] text-[#60758A]"
+            />
+          </div>
+
+          <section className="mt-9 grid grid-cols-1 gap-8 xl:grid-cols-2">
+            <ReportList
+              title="Resumo de recebimentos"
+              description="Valores vinculados aos pacientes e planos de tratamento."
+            >
+              {payments.map((payment) => (
+                <ReportRow
+                  key={payment.id}
+                  title={payment.patient}
+                  subtitle={payment.treatment}
+                  value={payment.paidValue}
+                  status={payment.status}
+                />
+              ))}
+            </ReportList>
+
+            <ReportList
+              title="Resumo de contas a pagar"
+              description="Despesas da clínica por vencimento e status."
+            >
+              {expenses.map((expense) => (
+                <ReportRow
+                  key={expense.id}
+                  title={expense.description}
+                  subtitle={`${expense.supplier} · vence em ${expense.dueDate}`}
+                  value={expense.amount}
+                  status={expense.status}
+                />
+              ))}
+            </ReportList>
+          </section>
+        </>
+      )}
+
       {isNewPaymentModalOpen && (
         <NewPaymentModal onClose={() => setIsNewPaymentModalOpen(false)} />
       )}
@@ -408,6 +538,30 @@ export default function FinancePage() {
         <NewExpenseModal onClose={() => setIsNewExpenseModalOpen(false)} />
       )}
     </AppShell>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-2xl px-5 py-3 text-sm font-medium transition ${
+        active
+          ? "bg-[#D7F5FC] text-[#12384D]"
+          : "text-[#60758A] hover:bg-[#F0FAFE] hover:text-[#12384D]"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -510,6 +664,53 @@ function TableActions() {
         </button>
       </div>
     </td>
+  );
+}
+
+function ReportList({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-3xl border border-[#D8EDF8] bg-white p-7 shadow-sm">
+      <div className="border-b border-[#EEF7FB] pb-5">
+        <h2 className="text-lg font-semibold text-[#12384D]">{title}</h2>
+        <p className="mt-1 text-sm text-[#60758A]">{description}</p>
+      </div>
+
+      <div className="mt-6 space-y-4">{children}</div>
+    </div>
+  );
+}
+
+function ReportRow({
+  title,
+  subtitle,
+  value,
+  status,
+}: {
+  title: string;
+  subtitle: string;
+  value: string;
+  status: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] p-4">
+      <div>
+        <p className="text-sm font-semibold text-[#12384D]">{title}</p>
+        <p className="mt-1 text-xs text-[#60758A]">{subtitle}</p>
+      </div>
+
+      <div className="text-right">
+        <p className="text-sm font-semibold text-[#12384D]">{value}</p>
+        <p className="mt-1 text-xs text-[#60758A]">{status}</p>
+      </div>
+    </div>
   );
 }
 
