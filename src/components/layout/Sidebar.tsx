@@ -8,7 +8,6 @@ import {
   CreditCard,
   LayoutDashboard,
   LogOut,
-  Settings,
   ClipboardList,
   Users,
 } from "lucide-react";
@@ -38,11 +37,6 @@ const menuItems = [
     label: "Financeiro",
     href: "/financeiro",
     icon: CreditCard,
-  },
-  {
-    label: "Configurações",
-    href: "/configuracoes",
-    icon: Settings,
   },
 ];
 
