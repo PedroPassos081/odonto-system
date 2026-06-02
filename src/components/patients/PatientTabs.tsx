@@ -69,6 +69,18 @@ type TreatmentPlan = {
   procedures: TreatmentProcedure[];
 };
 
+type PatientPayment = {
+  id: number;
+  patientId: string;
+  treatmentPlanId: number;
+  treatmentTitle: string;
+  amount: string;
+  method: string;
+  status: string;
+  paidAt: string;
+  notes: string;
+};
+
 type NewTreatmentProcedure = {
   id: number;
   name: string;
@@ -180,10 +192,36 @@ const treatmentPlans: TreatmentPlan[] = [
   },
 ];
 
+const patientPayments: PatientPayment[] = [
+  {
+    id: 1,
+    patientId: "001",
+    treatmentPlanId: 1,
+    treatmentTitle: "Plano restaurador",
+    amount: "€200,00",
+    method: "Cartão",
+    status: "Pago",
+    paidAt: "20/05/2026",
+    notes: "Primeiro pagamento do plano restaurador.",
+  },
+  {
+    id: 2,
+    patientId: "001",
+    treatmentPlanId: 1,
+    treatmentTitle: "Plano restaurador",
+    amount: "€100,00",
+    method: "Transferência",
+    status: "Pago",
+    paidAt: "22/05/2026",
+    notes: "Pagamento parcial.",
+  },
+];
+
 export function PatientTabs({ patient, appointments }: PatientTabsProps) {
   const [activeTab, setActiveTab] = useState("dados");
   const [isNewRecordModalOpen, setIsNewRecordModalOpen] = useState(false);
   const [isNewTreatmentModalOpen, setIsNewTreatmentModalOpen] = useState(false);
+  const [isNewPaymentModalOpen, setIsNewPaymentModalOpen] = useState(false);
 
   const [newTreatmentProcedures, setNewTreatmentProcedures] = useState<
     NewTreatmentProcedure[]
@@ -205,14 +243,20 @@ export function PatientTabs({ patient, appointments }: PatientTabsProps) {
     (plan) => plan.patientId === patient.id
   );
 
+  const patientFinancialRecords = patientPayments.filter(
+    (payment) => payment.patientId === patient.id
+  );
+
   const treatmentTotalValue = patientTreatmentPlans.reduce((total, plan) => {
-    const value = currencyToNumber(plan.totalValue);
-    return total + value;
+    return total + currencyToNumber(plan.totalValue);
   }, 0);
 
   const treatmentTotalOpen = patientTreatmentPlans.reduce((total, plan) => {
-    const value = currencyToNumber(plan.openValue);
-    return total + value;
+    return total + currencyToNumber(plan.openValue);
+  }, 0);
+
+  const patientTotalPaid = patientFinancialRecords.reduce((total, payment) => {
+    return total + currencyToNumber(payment.amount);
   }, 0);
 
   const newTreatmentTotal = newTreatmentProcedures.reduce(
@@ -329,7 +373,12 @@ export function PatientTabs({ patient, appointments }: PatientTabsProps) {
                     label="Registros no prontuário"
                     value={String(patientMedicalRecords.length)}
                   />
-                  <SummaryItem label="Valor em aberto" value="€120,00" />
+                  <SummaryItem
+                    label="Valor em aberto"
+                    value={`€${treatmentTotalOpen
+                      .toFixed(2)
+                      .replace(".", ",")}`}
+                  />
                 </div>
               </InfoCard>
             </aside>
@@ -473,7 +522,7 @@ export function PatientTabs({ patient, appointments }: PatientTabsProps) {
                         </p>
                       </div>
 
-                      <TreatmentStatusBadge status={plan.status} />
+                      <StatusBadge status={plan.status} />
                     </div>
 
                     <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -509,9 +558,7 @@ export function PatientTabs({ patient, appointments }: PatientTabsProps) {
                                 {procedure.price}
                               </td>
                               <td className="px-5 py-4">
-                                <TreatmentStatusBadge
-                                  status={procedure.status}
-                                />
+                                <StatusBadge status={procedure.status} />
                               </td>
                             </tr>
                           ))}
@@ -536,6 +583,7 @@ export function PatientTabs({ patient, appointments }: PatientTabsProps) {
                       .toFixed(2)
                       .replace(".", ",")}`}
                   />
+
                   <div className="rounded-2xl bg-[#FFF7E6] p-4">
                     <p className="text-xs text-[#B7791F]">Valor em aberto</p>
                     <p className="mt-1 text-2xl font-light text-[#12384D]">
@@ -549,17 +597,148 @@ export function PatientTabs({ patient, appointments }: PatientTabsProps) {
         )}
 
         {activeTab === "financeiro" && (
-          <InfoCard title="Financeiro do paciente">
-            <div className="rounded-2xl border border-dashed border-[#B5E0FB] bg-[#F8FBFD] p-8 text-center">
-              <p className="text-sm font-semibold text-[#12384D]">
-                Área financeira do paciente.
-              </p>
-              <p className="mt-2 text-sm text-[#60758A]">
-                Aqui ficarão valores pagos, pendentes, forma de pagamento e
-                histórico financeiro.
-              </p>
-            </div>
-          </InfoCard>
+          <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_360px]">
+            <section className="rounded-3xl border border-[#D8EDF8] bg-white p-7 shadow-sm">
+              <SectionHeader
+                title="Financeiro do paciente"
+                description="Pagamentos, valores em aberto e histórico financeiro vinculado ao paciente."
+                buttonLabel="Novo pagamento"
+                onClick={() => setIsNewPaymentModalOpen(true)}
+              />
+
+              <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <SummaryBox
+                  label="Total em tratamento"
+                  value={`€${treatmentTotalValue
+                    .toFixed(2)
+                    .replace(".", ",")}`}
+                />
+
+                <SummaryBox
+                  label="Total pago"
+                  value={`€${patientTotalPaid.toFixed(2).replace(".", ",")}`}
+                />
+
+                <SummaryBox
+                  label="Em aberto"
+                  value={`€${treatmentTotalOpen
+                    .toFixed(2)
+                    .replace(".", ",")}`}
+                />
+              </div>
+
+              <div className="mt-7 overflow-x-auto rounded-2xl border border-[#D8EDF8] bg-white">
+                <table className="w-full min-w-190 border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#EEF7FB]">
+                      <TableHead>Data</TableHead>
+                      <TableHead>Tratamento</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Método</TableHead>
+                      <TableHead>Status</TableHead>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {patientFinancialRecords.map((payment) => (
+                      <tr
+                        key={payment.id}
+                        className="border-b border-[#EEF7FB] last:border-b-0"
+                      >
+                        <td className="px-5 py-4 text-sm font-medium text-[#12384D]">
+                          {payment.paidAt}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <p className="text-sm font-medium text-[#12384D]">
+                            {payment.treatmentTitle}
+                          </p>
+                          <p className="mt-1 text-xs text-[#60758A]">
+                            {payment.notes}
+                          </p>
+                        </td>
+
+                        <td className="px-5 py-4 text-sm font-semibold text-[#12384D]">
+                          {payment.amount}
+                        </td>
+
+                        <td className="px-5 py-4 text-sm text-[#60758A]">
+                          {payment.method}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <StatusBadge status={payment.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <aside className="space-y-8">
+              <InfoCard title="Resumo financeiro">
+                <div className="space-y-4">
+                  <SummaryItem
+                    label="Pagamentos registrados"
+                    value={String(patientFinancialRecords.length)}
+                  />
+
+                  <SummaryItem
+                    label="Valor pago"
+                    value={`€${patientTotalPaid.toFixed(2).replace(".", ",")}`}
+                  />
+
+                  <div className="rounded-2xl bg-[#FFF7E6] p-4">
+                    <p className="text-xs text-[#B7791F]">Valor em aberto</p>
+                    <p className="mt-1 text-2xl font-light text-[#12384D]">
+                      €{treatmentTotalOpen.toFixed(2).replace(".", ",")}
+                    </p>
+                  </div>
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Planos vinculados">
+                <div className="space-y-3">
+                  {patientTreatmentPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-[#12384D]">
+                            {plan.title}
+                          </p>
+                          <p className="mt-1 text-xs text-[#60758A]">
+                            Total: {plan.totalValue}
+                          </p>
+                        </div>
+
+                        <StatusBadge status={plan.status} />
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-3">
+                        <div className="rounded-xl bg-white p-3">
+                          <p className="text-xs text-[#60758A]">Pago</p>
+                          <p className="mt-1 text-sm font-semibold text-[#12384D]">
+                            {plan.paidValue}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-white p-3">
+                          <p className="text-xs text-[#60758A]">Em aberto</p>
+                          <p className="mt-1 text-sm font-semibold text-[#12384D]">
+                            {plan.openValue}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
+            </aside>
+          </div>
         )}
       </div>
 
@@ -577,6 +756,13 @@ export function PatientTabs({ patient, appointments }: PatientTabsProps) {
           onAddProcedure={addTreatmentProcedure}
           onRemoveProcedure={removeTreatmentProcedure}
           onUpdateProcedure={updateTreatmentProcedure}
+        />
+      )}
+
+      {isNewPaymentModalOpen && (
+        <NewPatientPaymentModal
+          treatmentPlans={patientTreatmentPlans}
+          onClose={() => setIsNewPaymentModalOpen(false)}
         />
       )}
     </>
@@ -680,8 +866,14 @@ function TableHead({ children }: { children: React.ReactNode }) {
   );
 }
 
-function getTreatmentStatusStyle(status: string) {
+function getStatusStyle(status: string) {
   switch (status) {
+    case "Pago":
+      return "border-[#BCEBD3] bg-[#E6F7EF] text-[#2F855A]";
+    case "Parcial":
+      return "border-[#FBD38D] bg-[#FFF7E6] text-[#B7791F]";
+    case "Pendente":
+      return "border-[#B5E0FB] bg-[#E8F5FB] text-[#2E91BD]";
     case "Planejado":
       return "border-[#D8EDF8] bg-[#F8FBFD] text-[#60758A]";
     case "Aprovado":
@@ -697,10 +889,10 @@ function getTreatmentStatusStyle(status: string) {
   }
 }
 
-function TreatmentStatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-medium ${getTreatmentStatusStyle(
+      className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-medium ${getStatusStyle(
         status
       )}`}
     >
@@ -906,6 +1098,58 @@ function NewTreatmentPlanModal({
           </p>
         </div>
       </section>
+    </BaseModal>
+  );
+}
+
+function NewPatientPaymentModal({
+  treatmentPlans,
+  onClose,
+}: {
+  treatmentPlans: TreatmentPlan[];
+  onClose: () => void;
+}) {
+  return (
+    <BaseModal
+      eyebrow="Financeiro do paciente"
+      title="Novo pagamento"
+      description="Registre um pagamento vinculado ao paciente e ao plano de tratamento."
+      onClose={onClose}
+      maxWidth="max-w-3xl"
+      submitLabel="Guardar pagamento"
+    >
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <FormSelect label="Plano de tratamento">
+          <option>Selecione um plano</option>
+          {treatmentPlans.map((plan) => (
+            <option key={plan.id}>{plan.title}</option>
+          ))}
+        </FormSelect>
+
+        <FormInput label="Valor pago" placeholder="Ex: 120,00" />
+
+        <FormInput label="Data do pagamento" type="date" />
+
+        <FormSelect label="Forma de pagamento">
+          <option>Selecione</option>
+          <option>Dinheiro</option>
+          <option>Cartão</option>
+          <option>Transferência</option>
+          <option>MB Way</option>
+        </FormSelect>
+
+        <FormSelect label="Status">
+          <option>Pago</option>
+          <option>Parcial</option>
+          <option>Pendente</option>
+        </FormSelect>
+      </div>
+
+      <FormTextarea
+        label="Observações"
+        placeholder="Ex: pagamento parcial referente à primeira etapa do tratamento..."
+        rows={4}
+      />
     </BaseModal>
   );
 }
