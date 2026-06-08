@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
+import { createPatient } from "../actions";
 
 export default function NewPatientPage() {
   return (
@@ -29,7 +30,7 @@ export default function NewPatientPage() {
         </Link>
       </div>
 
-      <form className="mt-9 space-y-8">
+      <form action={createPatient} className="mt-9 space-y-8">
         <section className="rounded-3xl border border-[#D8EDF8] bg-white p-8 shadow-sm">
           <div className="border-b border-[#EEF7FB] pb-6">
             <h2 className="text-xl font-semibold text-[#12384D]">
@@ -47,7 +48,9 @@ export default function NewPatientPage() {
                 Nome completo
               </label>
               <input
+                name="full_name"
                 type="text"
+                required
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
               />
             </div>
@@ -57,6 +60,7 @@ export default function NewPatientPage() {
                 Data de nascimento
               </label>
               <input
+                name="birth_date"
                 type="date"
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
               />
@@ -67,19 +71,34 @@ export default function NewPatientPage() {
                 NIF
               </label>
               <input
+                name="nif"
                 type="text"
                 placeholder="Ex: 123456789"
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
               />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#12384D]">
+                Status
+              </label>
+              <select
+                name="status"
+                defaultValue="Ativo"
+                className="w-full rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
+              >
+                <option value="Ativo">Ativo</option>
+                <option value="Em tratamento">Em tratamento</option>
+                <option value="Retorno pendente">Retorno pendente</option>
+                <option value="Inativo">Inativo</option>
+              </select>
             </div>
           </div>
         </section>
 
         <section className="rounded-3xl border border-[#D8EDF8] bg-white p-8 shadow-sm">
           <div className="border-b border-[#EEF7FB] pb-6">
-            <h2 className="text-xl font-semibold text-[#12384D]">
-              Contacto
-            </h2>
+            <h2 className="text-xl font-semibold text-[#12384D]">Contacto</h2>
 
             <p className="mt-2 text-sm text-[#60758A]">
               Dados para comunicação e confirmação de consultas.
@@ -92,6 +111,7 @@ export default function NewPatientPage() {
                 Telefone/WhatsApp
               </label>
               <input
+                name="phone"
                 type="tel"
                 placeholder="+351 912 345 678"
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
@@ -103,6 +123,7 @@ export default function NewPatientPage() {
                 E-mail
               </label>
               <input
+                name="email"
                 type="email"
                 placeholder="email@exemplo.com"
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
@@ -114,6 +135,7 @@ export default function NewPatientPage() {
                 Morada
               </label>
               <input
+                name="address"
                 type="text"
                 placeholder="Rua, número, cidade"
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
@@ -139,6 +161,7 @@ export default function NewPatientPage() {
                 Histórico médico
               </label>
               <textarea
+                name="medical_history"
                 rows={4}
                 placeholder="Ex: hipertensão, diabetes, cirurgias anteriores..."
                 className="w-full resize-none rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
@@ -150,6 +173,7 @@ export default function NewPatientPage() {
                 Alergias
               </label>
               <textarea
+                name="allergies"
                 rows={3}
                 placeholder="Ex: alergia a anestesia, antibióticos, látex..."
                 className="w-full resize-none rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
@@ -161,6 +185,7 @@ export default function NewPatientPage() {
                 Medicamentos em uso
               </label>
               <textarea
+                name="medications"
                 rows={3}
                 placeholder="Ex: anticoagulantes, medicação para pressão..."
                 className="w-full resize-none rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
@@ -185,6 +210,7 @@ export default function NewPatientPage() {
               Observações importantes
             </label>
             <textarea
+              name="notes"
               rows={4}
               placeholder="Ex: paciente ansiosa, prefere consultas no período da manhã..."
               className="w-full resize-none rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] px-5 py-4 text-sm text-[#12384D] outline-none transition placeholder:text-[#8AA0B2] focus:border-[#B5E0FB] focus:bg-white focus:ring-4 focus:ring-[#B5E0FB]/30"
