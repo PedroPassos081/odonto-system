@@ -7,30 +7,17 @@ import {
   Search,
 } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase"
 
-const patients = [
-  {
-    id: 1,
-    name: "Maria Fernandes",
-    phone: "+351 912 345 678",
-    lastAppointment: "20/05/2026",
-    status: "Ativo",
-  },
-  {
-    id: 2,
-    name: "João Pereira",
-    phone: "+351 934 222 111",
-    lastAppointment: "18/05/2026",
-    status: "Em tratamento",
-  },
-  {
-    id: 3,
-    name: "Ana Martins",
-    phone: "+351 911 876 543",
-    lastAppointment: "12/05/2026",
-    status: "Retorno pendente",
-  },
-];
+type Patient = {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  nif: string | null;
+  status: string;
+  created_at: string;
+};
 
 function getStatusStyles(status: string) {
   switch (status) {
@@ -45,7 +32,16 @@ function getStatusStyles(status: string) {
   }
 }
 
-export default function PatientsPage() {
+export default async function PatientsPage() {
+  const { data, error } = await supabase
+    .from("patients")
+    .select("id, full_name, phone, email, nif, status, created_at")
+    .order("created_at", { ascending: false });
+    if (error) {
+    console.error("Error fetching patients:", error);
+  }
+
+  const patients: Patient[] = data || [];
   const hasPatients = patients.length > 0;
 
   return (
@@ -124,20 +120,20 @@ export default function PatientsPage() {
                     <td className="px-6 py-5">
                       <div>
                         <p className="text-sm font-semibold text-[#12384D]">
-                          {patient.name}
+                          {patient.full_name}
                         </p>
                         <p className="mt-1 text-xs text-[#60758A]">
-                          Paciente #{patient.id.toString().padStart(3, "0")}
+                          NIF: {patient.nif || "Não informado"}
                         </p>
                       </div>
                     </td>
 
                     <td className="px-6 py-5 text-sm text-[#60758A]">
-                      {patient.phone}
+                      {patient.phone || "Não informado"}
                     </td>
 
                     <td className="px-6 py-5 text-sm text-[#60758A]">
-                      {patient.lastAppointment}
+                      {patient.email || "Não informado"}
                     </td>
 
                     <td className="px-6 py-5">
