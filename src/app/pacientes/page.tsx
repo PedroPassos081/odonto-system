@@ -2,7 +2,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import {
   ChevronDown,
   Eye,
-  MoreHorizontal,
   Plus,
   Search,
 } from "lucide-react";
@@ -105,9 +104,9 @@ export default async function PatientsPage() {
                 </th>
 
                 <th className="px-6 py-5 text-right text-xs font-semibold uppercase tracking-[0.12em] text-[#60758A]">
-                  Ações
-                </th>
-              </tr>
+                          Ações
+                        </th>
+                </tr>
             </thead>
 
             <tbody>
@@ -146,18 +145,17 @@ export default async function PatientsPage() {
                       </span>
                     </td>
 
-                    <td className="px-6 py-5">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="inline-flex items-center gap-2 rounded-xl border border-[#D8EDF8] bg-white px-4 py-2 text-xs font-medium text-[#2E91BD] transition hover:bg-[#F0FAFE]">
-                          <Eye size={15} />
-                          Ver
-                        </button>
-
-                        <button className="rounded-xl p-2 text-[#60758A] transition hover:bg-[#F0FAFE] hover:text-[#12384D]">
-                          <MoreHorizontal size={18} />
-                        </button>
-                      </div>
-                    </td>
+                    <td className="px-6 py-5 text-right">
+                    <div className="flex items-center justify-end">
+                      <Link
+                        href={`/pacientes/${patient.id}`}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#D8EDF8] bg-white px-5 text-xs font-medium text-[#2E91BD] transition hover:bg-[#F0FAFE]"
+                      >
+                        <Eye size={15} />
+                        Ver
+                      </Link>
+                    </div>
+                  </td>
                   </tr>
                 ))
               ) : (

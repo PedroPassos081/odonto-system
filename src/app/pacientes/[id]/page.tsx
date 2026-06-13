@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { PatientTabs } from "@/components/patients/PatientTabs";
+import { supabase } from "@/lib/supabase";
 import {
   AlertCircle,
   ArrowLeft,
@@ -7,25 +8,29 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
-const patient = {
-  id: "001",
-  name: "Maria Fernandes",
-  age: "42 anos",
-  phone: "+351 912 345 678",
-  email: "maria.fernandes@email.com",
-  nif: "123456789",
-  address: "Rua das Flores, Porto",
-  birthDate: "14/03/1984",
-  lastAppointment: "20/05/2026",
-  status: "Em tratamento",
-  allergies: "Alergia a penicilina",
-  medications: "Medicação para hipertensão",
-  medicalHistory: "Hipertensão controlada. Sem histórico cirúrgico relevante.",
-  notes: "Paciente prefere consultas no período da manhã.",
+type SupabasePatient = {
+  id: string;
+  full_name: string;
+  birth_date: string | null;
+  nif: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  medical_history: string | null;
+  allergies: string | null;
+  medications: string | null;
+  notes: string | null;
+  status: string;
+  created_at: string;
 };
 
-
+type PatientDetailsPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
 const appointments = [
   {
@@ -42,9 +47,81 @@ const appointments = [
   },
 ];
 
+function formatDate(date: string | null) {
+  if (!date) {
+    return "Não informado";
+  }
 
+  const [year, month, day] = date.split("-");
 
-export default function PatientDetailsPage() {
+  if (!year || !month || !day) {
+    return "Não informado";
+  }
+
+  return `${day}/${month}/${year}`;
+}
+
+function calculateAge(birthDate: string | null) {
+  if (!birthDate) {
+    return "Idade não informada";
+  }
+
+  const birth = new Date(birthDate);
+  const today = new Date();
+
+  let age = today.getFullYear() - birth.getFullYear();
+
+  const hasBirthdayPassedThisYear =
+    today.getMonth() > birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() &&
+      today.getDate() >= birth.getDate());
+
+  if (!hasBirthdayPassedThisYear) {
+    age -= 1;
+  }
+
+  if (Number.isNaN(age)) {
+    return "Idade não informada";
+  }
+
+  return `${age} anos`;
+}
+
+export default async function PatientDetailsPage({
+  params,
+}: PatientDetailsPageProps) {
+  const { id } = await params;
+
+  const { data, error } = await supabase
+    .from("patients")
+    .select(
+      "id, full_name, birth_date, nif, phone, email, address, medical_history, allergies, medications, notes, status, created_at"
+    )
+    .eq("id", id)
+    .single<SupabasePatient>();
+
+  if (error || !data) {
+    notFound();
+  }
+
+  const patient = {
+    id: data.id,
+    name: data.full_name,
+    age: calculateAge(data.birth_date),
+    phone: data.phone || "Não informado",
+    email: data.email || "Não informado",
+    nif: data.nif || "Não informado",
+    address: data.address || "Não informado",
+    birthDate: formatDate(data.birth_date),
+    lastAppointment: "Sem consulta registada",
+    status: data.status,
+    allergies: data.allergies || "Sem alergias cadastradas",
+    medications: data.medications || "Nenhum medicamento cadastrado",
+    medicalHistory:
+      data.medical_history || "Sem histórico médico cadastrado",
+    notes: data.notes || "Sem observações cadastradas",
+  };
+
   return (
     <AppShell>
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
@@ -67,7 +144,7 @@ export default function PatientDetailsPage() {
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-[#B5E0FB] bg-[#E8F5FB] px-4 py-1.5 text-xs font-medium text-[#2E91BD]">
-              Paciente #{patient.id}
+              NIF: {patient.nif}
             </span>
 
             <span className="rounded-full border border-[#B5E0FB] bg-[#E8F5FB] px-4 py-1.5 text-xs font-medium text-[#2E91BD]">
@@ -85,6 +162,7 @@ export default function PatientDetailsPage() {
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#60758A]">
             Última consulta
           </p>
+
           <p className="mt-2 text-lg font-semibold text-[#12384D]">
             {patient.lastAppointment}
           </p>
@@ -101,7 +179,10 @@ export default function PatientDetailsPage() {
             <p className="text-sm font-semibold text-[#12384D]">
               Alerta clínico
             </p>
-            <p className="mt-1 text-sm text-[#60758A]">{patient.allergies}</p>
+
+            <p className="mt-1 text-sm text-[#60758A]">
+              {patient.allergies}
+            </p>
           </div>
         </div>
 
@@ -114,12 +195,13 @@ export default function PatientDetailsPage() {
             <p className="text-sm font-semibold text-[#12384D]">
               Observação importante
             </p>
+
             <p className="mt-1 text-sm text-[#60758A]">{patient.notes}</p>
           </div>
         </div>
       </div>
 
-     <PatientTabs patient={patient} appointments={appointments} />
+      <PatientTabs patient={patient} appointments={appointments} />
     </AppShell>
   );
 }
