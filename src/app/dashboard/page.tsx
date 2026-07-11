@@ -11,11 +11,17 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
+  const dataAtual = new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  }).format(new Date());
+
   return (
     <AppShell>
       <div>
         <p className="text-xs uppercase tracking-[0.35em] text-[#60758A]">
-          Sexta-feira, 22 de maio
+          {dataAtual}
         </p>
 
         <h1 className="mt-3 text-4xl font-light tracking-[-0.03em] text-[#12384D]">
