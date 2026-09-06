@@ -2,7 +2,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { DeletePatientButton } from "@/components/patients/DeletePatientButton";
 import { PatientTabs } from "@/components/patients/PatientTabs";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateBR } from "@/lib/format";
+import { calculateAge, formatDateBR } from "@/lib/format";
 import {
   AlertCircle,
   ArrowLeft,
@@ -35,32 +35,6 @@ type PatientDetailsPageProps = {
   }>;
 };
 
-
-function calculateAge(birthDate: string | null) {
-  if (!birthDate) {
-    return "Idade não informada";
-  }
-
-  const birth = new Date(birthDate);
-  const today = new Date();
-
-  let age = today.getFullYear() - birth.getFullYear();
-
-  const hasBirthdayPassedThisYear =
-    today.getMonth() > birth.getMonth() ||
-    (today.getMonth() === birth.getMonth() &&
-      today.getDate() >= birth.getDate());
-
-  if (!hasBirthdayPassedThisYear) {
-    age -= 1;
-  }
-
-  if (Number.isNaN(age)) {
-    return "Idade não informada";
-  }
-
-  return `${age} anos`;
-}
 
 export default async function PatientDetailsPage({
   params,
