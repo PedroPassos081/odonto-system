@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { QuickAction } from "@/components/ui/QuickAction";
 import { StatCard } from "@/components/ui/StatCard";
+import { createClient } from "@/lib/supabase/server";
 import {
   Calendar,
   ClipboardList,
@@ -10,12 +11,23 @@ import {
   Users,
 } from "lucide-react";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   const dataAtual = new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
   }).format(new Date());
+
+  const supabase = await createClient();
+
+  const { count: activePatientsCount, error } = await supabase
+    .from("patients")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "Ativo");
+
+  if (error) {
+    console.error("Error fetching active patients count:", error);
+  }
 
   return (
     <AppShell>
@@ -32,29 +44,29 @@ export default function DashboardPage() {
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Consultas hoje"
-          value="0"
-          description="Agendadas para hoje"
+          value="—"
+          description="Conectado na Etapa 4 (agenda)"
           icon={Calendar}
         />
 
         <StatCard
           title="Pacientes ativos"
-          value="0"
+          value={String(activePatientsCount ?? 0)}
           description="Total no sistema"
           icon={Users}
         />
 
         <StatCard
           title="Tratamentos"
-          value="0"
-          description="Em andamento"
+          value="—"
+          description="Conectado na Etapa 4 (tratamentos)"
           icon={ClipboardList}
         />
 
         <StatCard
           title="Pagamentos"
-          value="0"
-          description="Pendentes ou parciais"
+          value="—"
+          description="Conectado na Etapa 4 (financeiro)"
           icon={CreditCard}
         />
       </div>
