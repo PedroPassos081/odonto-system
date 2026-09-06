@@ -2,6 +2,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { DeletePatientButton } from "@/components/patients/DeletePatientButton";
 import { PatientTabs } from "@/components/patients/PatientTabs";
 import { createClient } from "@/lib/supabase/server";
+import { formatDateBR } from "@/lib/format";
 import {
   AlertCircle,
   ArrowLeft,
@@ -34,34 +35,6 @@ type PatientDetailsPageProps = {
   }>;
 };
 
-const appointments = [
-  {
-    date: "20/05/2026",
-    time: "10:30",
-    type: "Consulta de avaliação",
-    status: "Realizada",
-  },
-  {
-    date: "28/05/2026",
-    time: "09:00",
-    type: "Restauração",
-    status: "Agendada",
-  },
-];
-
-function formatDate(date: string | null) {
-  if (!date) {
-    return "Não informado";
-  }
-
-  const [year, month, day] = date.split("-");
-
-  if (!year || !month || !day) {
-    return "Não informado";
-  }
-
-  return `${day}/${month}/${year}`;
-}
 
 function calculateAge(birthDate: string | null) {
   if (!birthDate) {
@@ -108,6 +81,20 @@ export default async function PatientDetailsPage({
     notFound();
   }
 
+  const { data: appointmentRows } = await supabase
+    .from("appointments")
+    .select("date, start_time, type, status")
+    .eq("patient_id", id)
+    .order("date", { ascending: false })
+    .order("start_time", { ascending: false });
+
+  const appointments = (appointmentRows ?? []).map((appointment) => ({
+    date: formatDateBR(appointment.date),
+    time: appointment.start_time,
+    type: appointment.type,
+    status: appointment.status,
+  }));
+
   const patient = {
     id: data.id,
     name: data.full_name,
@@ -116,8 +103,10 @@ export default async function PatientDetailsPage({
     email: data.email || "Não informado",
     nif: data.nif || "Não informado",
     address: data.address || "Não informado",
-    birthDate: formatDate(data.birth_date),
-    lastAppointment: "Sem consulta registada",
+    birthDate: formatDateBR(data.birth_date),
+    lastAppointment: appointments[0]
+      ? `${appointments[0].date} às ${appointments[0].time}`
+      : "Sem consulta registada",
     status: data.status,
     allergies: data.allergies || "Sem alergias cadastradas",
     medications: data.medications || "Nenhum medicamento cadastrado",

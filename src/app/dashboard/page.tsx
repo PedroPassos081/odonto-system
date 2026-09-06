@@ -2,6 +2,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { QuickAction } from "@/components/ui/QuickAction";
 import { StatCard } from "@/components/ui/StatCard";
 import { createClient } from "@/lib/supabase/server";
+import { formatIsoDate } from "@/lib/format";
+import Link from "next/link";
 import {
   Calendar,
   ClipboardList,
@@ -12,21 +14,56 @@ import {
 } from "lucide-react";
 
 export default async function DashboardPage() {
+  const today = new Date();
+  const todayIso = formatIsoDate(today);
+
   const dataAtual = new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
-  }).format(new Date());
+  }).format(today);
 
   const supabase = await createClient();
 
-  const { count: activePatientsCount, error } = await supabase
-    .from("patients")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "Ativo");
+  const [
+    { count: activePatientsCount, error: patientsError },
+    { data: todaysAppointments, error: appointmentsError },
+    { count: activeTreatmentsCount, error: treatmentsError },
+    { count: pendingPaymentsCount, error: paymentsError },
+  ] = await Promise.all([
+    supabase
+      .from("patients")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "Ativo"),
+    supabase
+      .from("appointments")
+      .select("id, start_time, type, status, patients(full_name)")
+      .eq("date", todayIso)
+      .order("start_time", { ascending: true }),
+    supabase
+      .from("treatment_plans")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "Em andamento"),
+    supabase
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["Pendente", "Parcial"]),
+  ]);
 
-  if (error) {
-    console.error("Error fetching active patients count:", error);
+  if (patientsError) {
+    console.error("Error fetching active patients count:", patientsError);
+  }
+
+  if (appointmentsError) {
+    console.error("Error fetching today's appointments:", appointmentsError);
+  }
+
+  if (treatmentsError) {
+    console.error("Error fetching active treatments count:", treatmentsError);
+  }
+
+  if (paymentsError) {
+    console.error("Error fetching pending payments count:", paymentsError);
   }
 
   return (
@@ -44,8 +81,8 @@ export default async function DashboardPage() {
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Consultas hoje"
-          value="—"
-          description="Conectado na Etapa 4 (agenda)"
+          value={String(todaysAppointments?.length ?? 0)}
+          description="Agendadas para hoje"
           icon={Calendar}
         />
 
@@ -58,15 +95,15 @@ export default async function DashboardPage() {
 
         <StatCard
           title="Tratamentos"
-          value="—"
-          description="Conectado na Etapa 4 (tratamentos)"
+          value={String(activeTreatmentsCount ?? 0)}
+          description="Em andamento"
           icon={ClipboardList}
         />
 
         <StatCard
           title="Pagamentos"
-          value="—"
-          description="Conectado na Etapa 4 (financeiro)"
+          value={String(pendingPaymentsCount ?? 0)}
+          description="Pendentes ou parciais"
           icon={CreditCard}
         />
       </div>
@@ -78,14 +115,47 @@ export default async function DashboardPage() {
               Próximas consultas
             </h2>
 
-            <button className="text-sm font-medium text-[#2E91BD]">
+            <Link
+              href="/agenda"
+              className="text-sm font-medium text-[#2E91BD]"
+            >
               Ver agenda
-            </button>
+            </Link>
           </div>
 
-          <div className="flex h-60 items-center justify-center">
-            <p className="text-sm text-[#60758A]">Sem consultas próximas.</p>
-          </div>
+          {todaysAppointments && todaysAppointments.length > 0 ? (
+            <div className="mt-6 space-y-3">
+              {todaysAppointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="flex items-center justify-between rounded-2xl border border-[#D8EDF8] bg-[#F8FBFD] p-4"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-[#12384D]">
+                      {appointment.patients?.[0]?.full_name ??
+                        "Paciente removido"}
+                    </p>
+                    <p className="mt-1 text-xs text-[#60758A]">
+                      {appointment.type}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-[#12384D]">
+                      {appointment.start_time}
+                    </p>
+                    <p className="mt-1 text-xs text-[#60758A]">
+                      {appointment.status}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-60 items-center justify-center">
+              <p className="text-sm text-[#60758A]">Sem consultas próximas.</p>
+            </div>
+          )}
         </section>
 
         <section className="rounded-3xl border border-[#D8EDF8] bg-white p-8 shadow-sm">
