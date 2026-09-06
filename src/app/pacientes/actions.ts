@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 function getFormValue(formData: FormData, key: string) {
     const value = formData.get(key);
@@ -30,6 +30,8 @@ export async function createPatient(formData: FormData) {
     if (!fullName) {
         throw new Error("O nome do paciente é obrigatório.");
     }
+
+    const supabase = await createClient();
 
     const { error } = await supabase.from("patients").insert({
         full_name: fullName,

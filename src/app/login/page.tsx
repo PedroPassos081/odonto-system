@@ -1,7 +1,22 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
+import { useActionState } from "react";
+import { login } from "./actions";
+
+type LoginState = { error: string } | null;
+
+async function loginAction(_prevState: LoginState, formData: FormData) {
+  const result = await login(formData);
+  return result ?? null;
+}
 
 export default function LoginPage() {
+  const [state, formAction, isPending] = useActionState<LoginState, FormData>(
+    loginAction,
+    null
+  );
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#F6FBFE] px-6 py-8">
       <div className="w-full max-w-115">
@@ -36,14 +51,16 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="mt-7 space-y-5">
+          <form action={formAction} className="mt-7 space-y-5">
             <div>
               <label className="mb-2 block text-sm font-semibold text-[#12384D]">
                 E-mail
               </label>
 
               <input
+                name="email"
                 type="email"
+                required
                 placeholder="nome@clinica.pt"
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-white px-4 py-3 text-sm text-[#12384D] shadow-sm outline-none transition placeholder:text-[#60758A] focus:border-[#B5E0FB] focus:ring-4 focus:ring-[#B5E0FB]/30"
               />
@@ -55,29 +72,26 @@ export default function LoginPage() {
               </label>
 
               <input
+                name="password"
                 type="password"
+                required
                 className="w-full rounded-2xl border border-[#D8EDF8] bg-white px-4 py-3 text-sm text-[#12384D] shadow-sm outline-none transition focus:border-[#B5E0FB] focus:ring-4 focus:ring-[#B5E0FB]/30"
               />
             </div>
 
-            <Link
-              href="/dashboard"
-              className="flex w-full items-center justify-center rounded-2xl bg-[#399DCA] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2E91BD]"
-            >
-              Entrar
-            </Link>
-
-            <div className="pt-1 text-center">
-              <p className="text-sm text-[#60758A]">
-                Primeira utilização?{" "}
-                <Link
-                  href="/dashboard"
-                  className="font-medium text-[#2E91BD] transition hover:text-[#12384D]"
-                >
-                  Criar conta
-                </Link>
+            {state?.error ? (
+              <p className="text-sm font-medium text-[#C0392B]">
+                {state.error}
               </p>
-            </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex w-full items-center justify-center rounded-2xl bg-[#399DCA] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2E91BD] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isPending ? "A entrar..." : "Entrar"}
+            </button>
           </form>
         </section>
 

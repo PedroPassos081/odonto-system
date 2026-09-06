@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Users,
 } from "lucide-react";
+import { logout } from "@/app/actions";
 
 const menuItems = [
   {
@@ -90,10 +91,15 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-[#D8EDF8] px-4 py-5">
-        <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#60758A] transition hover:bg-[#F0FAFE] hover:text-[#243B53]">
-          <LogOut size={18} />
-          Sair
-        </button>
+        <form action={logout}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#60758A] transition hover:bg-[#F0FAFE] hover:text-[#243B53]"
+          >
+            <LogOut size={18} />
+            Sair
+          </button>
+        </form>
       </div>
     </aside>
   );

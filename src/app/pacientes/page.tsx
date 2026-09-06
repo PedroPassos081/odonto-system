@@ -6,7 +6,7 @@ import {
   Search,
 } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/server";
 
 type Patient = {
   id: string;
@@ -32,6 +32,8 @@ function getStatusStyles(status: string) {
 }
 
 export default async function PatientsPage() {
+  const supabase = await createClient();
+
   const { data, error } = await supabase
     .from("patients")
     .select("id, full_name, phone, email, nif, status, created_at")

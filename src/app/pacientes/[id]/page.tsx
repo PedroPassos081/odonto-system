@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { PatientTabs } from "@/components/patients/PatientTabs";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import {
   AlertCircle,
   ArrowLeft,
@@ -91,6 +91,8 @@ export default async function PatientDetailsPage({
   params,
 }: PatientDetailsPageProps) {
   const { id } = await params;
+
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("patients")
