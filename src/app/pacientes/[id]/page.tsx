@@ -1,9 +1,11 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { DeletePatientButton } from "@/components/patients/DeletePatientButton";
 import { PatientTabs } from "@/components/patients/PatientTabs";
 import { createClient } from "@/lib/supabase/server";
 import {
   AlertCircle,
   ArrowLeft,
+  Pencil,
   Phone,
   ShieldAlert,
 } from "lucide-react";
@@ -160,14 +162,32 @@ export default async function PatientDetailsPage({
           </div>
         </div>
 
-        <div className="rounded-3xl border border-[#D8EDF8] bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#60758A]">
-            Última consulta
-          </p>
+        <div className="flex flex-col items-start gap-4 xl:items-end">
+          <div className="rounded-3xl border border-[#D8EDF8] bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#60758A]">
+              Última consulta
+            </p>
 
-          <p className="mt-2 text-lg font-semibold text-[#12384D]">
-            {patient.lastAppointment}
-          </p>
+            <p className="mt-2 text-lg font-semibold text-[#12384D]">
+              {patient.lastAppointment}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/pacientes/${patient.id}/editar`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#D8EDF8] bg-white px-5 text-xs font-medium text-[#12384D] transition hover:bg-[#F0FAFE]"
+            >
+              <Pencil size={15} />
+              Editar
+            </Link>
+
+            <DeletePatientButton
+              id={patient.id}
+              patientName={patient.name}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#FBD5D5] bg-white px-5 text-xs font-medium text-[#C0392B] transition hover:bg-[#FFF5F5]"
+            />
+          </div>
         </div>
       </div>
 

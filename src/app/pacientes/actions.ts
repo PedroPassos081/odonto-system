@@ -14,41 +14,71 @@ function getFormValue(formData: FormData, key: string) {
     return value.trim();
 }
 
-export async function createPatient(formData: FormData) {
-    const fullName = getFormValue(formData, "full_name");
-    const birthDate = getFormValue(formData, "birth_date");
-    const nif = getFormValue(formData, "nif");
-    const phone = getFormValue(formData, "phone");
-    const email = getFormValue(formData, "email");
-    const address = getFormValue(formData, "address");
-    const medicalHistory = getFormValue(formData, "medical_history");
-    const allergies = getFormValue(formData, "allergies");
-    const medications = getFormValue(formData, "medications");
-    const notes = getFormValue(formData, "notes");
-    const status = getFormValue(formData, "status") || "Ativo";
+function getPatientFieldsFromForm(formData: FormData) {
+    return {
+        full_name: getFormValue(formData, "full_name"),
+        birth_date: getFormValue(formData, "birth_date") || null,
+        nif: getFormValue(formData, "nif") || null,
+        phone: getFormValue(formData, "phone") || null,
+        email: getFormValue(formData, "email") || null,
+        address: getFormValue(formData, "address") || null,
+        medical_history: getFormValue(formData, "medical_history") || null,
+        allergies: getFormValue(formData, "allergies") || null,
+        medications: getFormValue(formData, "medications") || null,
+        notes: getFormValue(formData, "notes") || null,
+        status: getFormValue(formData, "status") || "Ativo",
+    };
+}
 
-    if (!fullName) {
+export async function createPatient(formData: FormData) {
+    const fields = getPatientFieldsFromForm(formData);
+
+    if (!fields.full_name) {
         throw new Error("O nome do paciente é obrigatório.");
     }
 
     const supabase = await createClient();
 
-    const { error } = await supabase.from("patients").insert({
-        full_name: fullName,
-        birth_date: birthDate || null,
-        nif: nif || null,
-        phone: phone || null,
-        email: email || null,
-        address: address || null,
-        medical_history: medicalHistory || null,
-        allergies: allergies || null,
-        medications: medications || null,
-        notes: notes || null,
-        status,
-    });
+    const { error } = await supabase.from("patients").insert(fields);
 
     if (error) {
         throw new Error(`Erro ao cadastrar paciente: ${error.message}`);
+    }
+
+    revalidatePath("/pacientes");
+    redirect("/pacientes");
+}
+
+export async function updatePatient(id: string, formData: FormData) {
+    const fields = getPatientFieldsFromForm(formData);
+
+    if (!fields.full_name) {
+        throw new Error("O nome do paciente é obrigatório.");
+    }
+
+    const supabase = await createClient();
+
+    const { error } = await supabase
+        .from("patients")
+        .update(fields)
+        .eq("id", id);
+
+    if (error) {
+        throw new Error(`Erro ao atualizar paciente: ${error.message}`);
+    }
+
+    revalidatePath("/pacientes");
+    revalidatePath(`/pacientes/${id}`);
+    redirect(`/pacientes/${id}`);
+}
+
+export async function deletePatient(id: string) {
+    const supabase = await createClient();
+
+    const { error } = await supabase.from("patients").delete().eq("id", id);
+
+    if (error) {
+        throw new Error(`Erro ao excluir paciente: ${error.message}`);
     }
 
     revalidatePath("/pacientes");

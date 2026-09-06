@@ -1,7 +1,9 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { DeletePatientButton } from "@/components/patients/DeletePatientButton";
 import {
   ChevronDown,
   Eye,
+  Pencil,
   Plus,
   Search,
 } from "lucide-react";
@@ -148,7 +150,7 @@ export default async function PatientsPage() {
                     </td>
 
                     <td className="px-6 py-5 text-right">
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/pacientes/${patient.id}`}
                         className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#D8EDF8] bg-white px-5 text-xs font-medium text-[#2E91BD] transition hover:bg-[#F0FAFE]"
@@ -156,6 +158,20 @@ export default async function PatientsPage() {
                         <Eye size={15} />
                         Ver
                       </Link>
+
+                      <Link
+                        href={`/pacientes/${patient.id}/editar`}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#D8EDF8] bg-white px-5 text-xs font-medium text-[#12384D] transition hover:bg-[#F0FAFE]"
+                      >
+                        <Pencil size={15} />
+                        Editar
+                      </Link>
+
+                      <DeletePatientButton
+                        id={patient.id}
+                        patientName={patient.full_name}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#FBD5D5] bg-white px-5 text-xs font-medium text-[#C0392B] transition hover:bg-[#FFF5F5]"
+                      />
                     </div>
                   </td>
                   </tr>
